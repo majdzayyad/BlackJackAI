@@ -1,11 +1,11 @@
 import itertools
-import state as s
 import util
 
 class MarkovDecisionProcess:
-    def __init__(self, start):
+    def __init__(self, start, deck):
         self.actions = ["Hit", "Stand"]
         self.start = start
+        self.deck = deck
 
     def get_start_state(self):
         return self.start
@@ -45,11 +45,9 @@ class MarkovDecisionProcess:
         :param state: state
         :return: actions
         """
-        if state.is_terminal():
-            return []
         return ["Hit", "Stand"]
 
-    def get_states_probs(self, state, action, initial_prob=1):
+    def get_states_probs(self, state, action):
         """
         return a list of (next state, probability) pairs reachable by taking an action
         :param state: our state
@@ -59,40 +57,23 @@ class MarkovDecisionProcess:
         """
         res = []
         if action == "Stand":
-            next_state = state.copy()
-            res.append((next_state, 1))
+            return [((state[0],state[1],state[2]), 1)]
 
         elif action == "Hit":
-            for i in range(len(state.get_deck())):
-                new_state = state.copy()
-                new_deck = state.get_deck().copy()
-                new_deck.pop(i)
-                new_shown = state.get_cards_shown().copy()
-                new_shown.append(state.get_deck()[i])
-                new_state.add_player_card(state.get_deck()[i])
-                new_state.set_deck(new_deck)
-                new_state.set_cards_shown(new_shown)
-                prob = state.get_prob(state.get_deck()[i])
-                res.extend(self.get_states_probs(new_state, "Stand", prob))
+            total = sum(self.deck.values())
+            for card in self.deck:
+                if self.deck[card] >= 0 and total > 0:
+                    res.append(((state[0]+card, state[1], state[2]), self.deck[card]/total))
         return res
 
-    def get_reward(self, state, action, next_state):
-        """
-        reward function for the reinforcement agent
-        :param state: current state
-        :param action: action taken to achieve next state
-        :param next_state: the next state we achieve by taking the action
-        :return: reward or penalty
-        """
-        if next_state == None or action == None:
-            return state.get_hand_value()
-        if next_state.get_hand_value() <= 21:
-            if action == "Hit":
-                return 1
-            else:
-                return 0
-        else:
+    def get_reward(self, state):
+        if state[0] > 21:
             return -1
+        if state[0] > 13:
+            return 1
+        return 0
+
+
 
 
 

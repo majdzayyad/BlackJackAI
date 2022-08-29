@@ -1,7 +1,7 @@
 import util as util
 #value Iteration agent
 class ValueIteration:
-    def __init__(self, mdp, discount=0.127, iterations=10):
+    def __init__(self, mdp, discount=0.9, iterations=100):
         """
         constructor to initialize the counter for the value iteration agent
         :param mdp: the mdp of the game
@@ -27,7 +27,7 @@ class ValueIteration:
                         max_sum = curr_sum
                         v_s = (self.discount * max_sum)
                         action = a
-                v_next[s] = v_s + self.mdp.get_reward(s, action, None)
+                v_next[s] = v_s  + self.mdp.get_reward(s)
             self.values = v_next
 
     def get_value(self, state): # get value of current state
@@ -40,7 +40,7 @@ class ValueIteration:
         :param action:
         :return: value in value iteration dictionary
         """
-        res = self.mdp.get_reward(state, action, None)
+        res = self.mdp.get_reward(state)
         if action == None:
             return res
         return res + sum(
@@ -52,6 +52,4 @@ class ValueIteration:
         :param state:
         :return: best possible action
         """
-        if state.is_terminal():
-            return "Stand"
         return max([a for a in self.mdp.get_possible_actions(state)], key= lambda x: self.get_q_value(state, x))
